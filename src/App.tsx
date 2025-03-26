@@ -1,8 +1,14 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-
+//import InputBox from "./components/InputBox";
 function App() {
+
+  const [message, setMessage] = useState<string>('');
+
+  const handleMessageSubmit = (msg: string) => {
+    setMessage(msg);
+  };
   return (
     <div className="App">
       <header className="App-header">
