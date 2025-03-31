@@ -37,6 +37,11 @@ const InputBox: React.FC = () => {
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSendMessage();
+            }
+          }}
           className="flex-grow p-2 outline-none px-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500"
           placeholder="Entrez un message"
         />
