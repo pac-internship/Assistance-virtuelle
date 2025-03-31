@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
 
 interface Message {
   id: number;
   text: string;
+  sender: 'user' | 'bot';
 }
 
 const InputBox: React.FC = () => {
@@ -12,44 +14,59 @@ const InputBox: React.FC = () => {
   const handleSendMessage = () => {
     if (inputValue.trim()) {
       const newMessage: Message = {
-        id: messages.length + 1,
+        id: Date.now(),
         text: inputValue,
+        sender: 'user',
       };
-      setMessages([...messages, newMessage]);
-      setInputValue(''); // Réinitialiser la zone de texte après l'envoi
+
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      setInputValue('');
+
+      // Simuler une réponse du bot
+      setTimeout(() => {
+        const botResponse: Message = {
+          id: Date.now() + 1,
+          text: "Je suis un bot 🤖 ! Comment puis-je vous aider aujourd’hui ?",
+          sender: 'bot',
+        };
+        setMessages((prevMessages) => [...prevMessages, botResponse]);
+      }, 1000);
     }
   };
 
   return (
-    <div className="p-4 w-full max-w-md mx-auto">
+    <div className="p-4 w-full max-w-2xl mx-auto">
       {/* Conteneur des messages */}
-      <div className="max-h-60 overflow-y-auto mb-4 border border-gray-300 rounded-lg p-2 space-y-2">
+      <div className="max-h-80 overflow-y-auto mb-4 border border-gray-300 rounded-lg p-4 bg-white shadow-md space-y-2 flex flex-col">
         {messages.map((message) => (
-          <div key={message.id} className="p-2 bg-gray-100 rounded-lg shadow-sm">
+          <div
+            key={message.id}
+            className={`p-3 rounded-lg shadow-sm max-w-full break-words whitespace-pre-wrap ${
+              message.sender === 'user'
+                ? 'bg-blue-500 text-white self-end ml-auto'
+                : 'bg-gray-200 text-gray-900 self-start'
+            }`}
+          >
             {message.text}
           </div>
         ))}
       </div>
 
-      {/* Barre d'entrée avec input + bouton alignés */}
-      <div className="flex items-center border border-gray-300 rounded-lg p-2">
+      {/* Barre d'entrée */}
+      <div className="flex items-center border border-gray-300 rounded-full p-2 shadow-sm bg-white">
         <input
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleSendMessage();
-            }
-          }}
-          className="flex-grow p-2 outline-none px-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500"
-          placeholder="Entrez un message"
+          onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+          className="flex-grow p-3 outline-none rounded-full text-gray-900 break-words whitespace-pre-wrap"
+          placeholder="Écrire un message..."
         />
         <button
           onClick={handleSendMessage}
-          className="ml-2 bg-blue-500 text px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none"
+          className="ml-2 bg-white text-black p-3 rounded-full hover:bg-gray-200 transition flex items-center justify-center cursor-pointer"
         >
-          Envoyer
+          <PaperAirplaneIcon className="w-5 h-5 text-black" />
         </button>
       </div>
     </div>
