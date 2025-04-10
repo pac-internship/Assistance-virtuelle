@@ -1,6 +1,6 @@
 import React from "react";
 import { format, isToday, isYesterday, subDays, isWithinInterval } from "date-fns";
-import fr from "date-fns/locale/fr"; 
+import {fr} from "date-fns/locale/fr"; 
 
 interface Message {
   id: number;

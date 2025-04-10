@@ -1,8 +1,9 @@
 // Chatbot.tsx
 
 import React, { useState } from "react";
-import Header from "./component/Header";
+import Header from "./component/Header"; 
 import Chatbot from "./component/chatBot";
+import History from "./component/Historique";
 
 interface Message {
   id: number;
@@ -32,13 +33,24 @@ const App: React.FC = () => {
     ]);
   };
 
-
   return (
-    <><div className="h-screen w-full flex flex-col relative transition-all duration-300">
+    <div className="h-screen w-full flex flex-col relative transition-all duration-300">
       {/* En-tête */}
       <Header onHistoryToggle={toggleHistory} onNewChat={startNewChat} showHistory={showHistory} />
-       {/* Contenu du chat (InputBox) */}
-       <div
+
+      {/* Contenu principal */}
+      <div className="flex flex-1 transition-all duration-300">
+        {/* Historique qui se développe */}
+        <div
+          className={`bg-gray-50 shadow-md h-full overflow-auto transition-all duration-300 ${
+            showHistory ? "w-[20%] p-4" : "w-0 p-0"
+          }`}
+        >
+          {showHistory && <History messages={messages} />}
+        </div>
+
+        {/* Contenu du chat (InputBox) */}
+        <div
           className={`flex justify-center items-center transition-all duration-300 ${
             showHistory ? "w-[80%]" : "w-full"
           }`}
@@ -48,9 +60,8 @@ const App: React.FC = () => {
             <Chatbot messages={messages} setMessages={setMessages} />
           </div>
         </div>
-     
+      </div>
     </div>
-    </>
   );
 };
 

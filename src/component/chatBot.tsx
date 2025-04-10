@@ -1,47 +1,72 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
+import MessageList from "./MessageList";
+import WelcomeMessage from "./WelcomMessage";
+import MessageInput from "./MessageInput";
 
-interface MessageInputProps {
-  inputValue: string;
-  setInputValue: React.Dispatch<React.SetStateAction<string>>;
-  handleSendMessage: () => void;
-  textareaRef: React.RefObject<HTMLTextAreaElement>;
+interface Message {
+  id: number;
+  text: string;
+  sender: "user" | "bot";
+  timestamp: string;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({
-  inputValue,
-  setInputValue,
-  handleSendMessage,
-  textareaRef,
-}) => (
-  <div className="w-full mx-auto px-4 py-4 sm:px-6">
-    <div className="flex items-center space-x-2 p-3" style={{ marginBottom: "20px" }}>
-      <textarea
-        ref={textareaRef}
-        rows={1}
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
-          }
-        }}
-        className="flex-grow rounded-xl border border-gray-300 px-4 py-2 shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm resize-none"
-        placeholder="Type your message..."
-        style={{
-          maxHeight: "160px",
-          overflowY: inputValue ? "auto" : "hidden",
-        }}
-      />
-      <button
-        onClick={handleSendMessage}
-        className="inline-flex items-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
-      >
-        <PaperAirplaneIcon className="w-5 h-5" />
-      </button>
-    </div>
-  </div>
-);
+interface InputBoxProps {
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+}
 
-export default MessageInput;
+const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
+  const [inputValue, setInputValue] = useState<string>("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [inputValue]);
+
+  const handleSendMessage = () => {
+    if (inputValue.trim()) {
+      const newUserMessage: Message = {
+        id: messages.length + 1,
+        text: inputValue,
+        sender: "user",
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages([...messages, newUserMessage]);
+
+      setTimeout(() => {
+        const botResponse: Message = {
+          id: messages.length + 2,
+          text: "Je suis un bot 🤖 !",
+          sender: "bot",
+          timestamp: new Date().toISOString(),
+        };
+        setMessages((prevMessages) => [...prevMessages, botResponse]);
+      }, 1000);
+
+      setInputValue("");
+    }
+  };
+
+  return (
+    <div className="h-screen flex flex-col items-center justify-center bg-white w-full">
+      {messages.length === 1 && messages[0].sender === "bot" ? (
+        <WelcomeMessage text={messages[0].text} />
+      ) : (
+        <MessageList messages={messages} />
+      )}
+      <MessageInput
+        inputValue={inputValue}
+        setInputValue={setInputValue}
+        handleSendMessage={handleSendMessage}
+        textareaRef={textareaRef}
+      />
+    </div>
+  );
+};
+
+export default InputBox;
