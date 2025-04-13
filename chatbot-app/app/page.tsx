@@ -4,6 +4,7 @@ import { Message } from '@/types/message'
 import React, { useState } from 'react'
 import Header from '../component/Header'
 import Chatbot from "../component/Chatbot";
+import History from "../component/Historique";
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([
@@ -39,7 +40,16 @@ export default function Home() {
       
       {/* Contenu principal */}
       <div className="flex flex-1 transition-all duration-300">
-      
+       
+        {/* Historique qui se développe */}
+        <div
+          className={`bg-gray-50 shadow-md h-full overflow-auto transition-all duration-300 ${
+            showHistory ? "w-[20%] p-4" : "w-0 p-0"
+          }`}
+        >
+          {showHistory && <History messages={messages} />}
+        </div>
+       
        {/* Contenu du chat (InputBox) */}
        <div
           className={`flex justify-center items-center transition-all duration-300 ${
