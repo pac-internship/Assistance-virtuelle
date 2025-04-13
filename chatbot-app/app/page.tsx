@@ -39,6 +39,7 @@ export default function Home() {
       
       {/* Contenu principal */}
       <div className="flex flex-1 transition-all duration-300">
+      
        {/* Contenu du chat (InputBox) */}
        <div
           className={`flex justify-center items-center transition-all duration-300 ${
