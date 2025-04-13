@@ -3,6 +3,7 @@
 import { Message } from '@/types/message'
 import React, { useState } from 'react'
 import Header from '../component/Header'
+import Chatbot from "../component/Chatbot";
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([
@@ -33,15 +34,22 @@ export default function Home() {
   return (
     <div className="h-screen w-full flex flex-col relative transition-all duration-300">
       {/* En-tête */}
-      <Header
-        onHistoryToggle={toggleHistory}
-        onNewChat={startNewChat}
-        showHistory={showHistory}
+      <Header onHistoryToggle={toggleHistory} onNewChat={startNewChat} showHistory={showHistory}
       />
-
-      {/* Exemple de contenu principal */}
-      <div className="flex-1 p-4">
-        <p>Hello world</p>
+      
+      {/* Contenu principal */}
+      <div className="flex flex-1 transition-all duration-300">
+       {/* Contenu du chat (InputBox) */}
+       <div
+          className={`flex justify-center items-center transition-all duration-300 ${
+            showHistory ? "w-[80%]" : "w-full"
+          }`}
+          id="chatbox"
+        >
+          <div className="w-[60%]">
+            <Chatbot messages={messages} setMessages={setMessages} />
+          </div>
+        </div>
       </div>
     </div>
   )
