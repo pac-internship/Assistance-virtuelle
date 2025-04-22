@@ -151,7 +151,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\KEMI\\Desktop\\AS_next\\Assistance-virtuelle\\chatbot-app\\generated\\prisma",
+      "value": "/Users/eudesdohou/Sites/Projects/PAC/Internship/virtual_assistant/chatbot-app/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -160,12 +160,12 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
+        "value": "darwin-arm64",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\KEMI\\Desktop\\AS_next\\Assistance-virtuelle\\chatbot-app\\prisma\\schema.prisma",
+    "sourceFilePath": "/Users/eudesdohou/Sites/Projects/PAC/Internship/virtual_assistant/chatbot-app/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

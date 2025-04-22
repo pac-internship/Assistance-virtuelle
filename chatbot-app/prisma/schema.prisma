@@ -34,7 +34,7 @@ model Chatroom {
 model Message {
   id          Int       @id @default(autoincrement())
   titre       String?
-  content     String     
+  content     String
   idChatroom  Int
   chatroom    Chatroom   @relation(fields: [idChatroom], references: [id])
 }
