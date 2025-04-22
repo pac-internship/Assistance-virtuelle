@@ -32,21 +32,19 @@ const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
         timestamp: new Date().toISOString(),
       };
 
+      // Affiche le message de l'utilisateur
       setMessages([...messages, newUserMessage]);
 
       try {
-        // Send the user message to the backend to get a bot reply
-        const response = await fetch("/api/chatbot", { 
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ text: inputValue }),
+        // Envoie du message au backend
+        const res = await fetch('/api/chatbot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: inputValue })
         });
 
-        const data = await response.json();
+        const data = await res.json(); // récupère la réponse du bot via faker
 
-        // Assuming the response from the backend is in the format { reply: "Bot's response" }
         const botResponse: Message = {
           id: messages.length + 2,
           text: data.reply || "Sorry, I didn't understand that.",
@@ -54,6 +52,7 @@ const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
           timestamp: new Date().toISOString(),
         };
 
+        // Affiche la réponse du bot
         setMessages((prevMessages) => [...prevMessages, botResponse]);
       } catch (error) {
         console.error("Error fetching bot response:", error);
