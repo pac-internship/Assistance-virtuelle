@@ -6,7 +6,6 @@ import { Message } from '@/types/message'
 interface MessageListProps {
   messages: Message[];
 }
-
 const MessageList: React.FC<MessageListProps> = ({ messages }) => (
   <div className="w-full mx-auto flex flex-col flex-1 overflow-hidden">
     <div className="flex-1 overflow-y-auto p-4" style={{ marginTop: "10px" }}>

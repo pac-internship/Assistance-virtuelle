@@ -1,0 +1,59 @@
+{
+  "messages": [
+    {
+      "id": 1,
+      "text": "Bonjour ! Je suis l'assistant virtuel du Port Autonome de Cotonou. Que puis-je faire pour vous aujourd'hui ?",
+      "sender": "bot",
+      "timestamp": "2025-04-16T08:00:00Z"
+    },
+    {
+      "id": 2,
+      "text": "Quels sont les horaires d'ouverture du port ?",
+      "sender": "user",
+      "timestamp": "2025-04-16T08:01:00Z"
+    },
+    {
+      "id": 3,
+      "text": "Le Port Autonome de Cotonou est ouvert 24h/24, 7j/7 pour les activités portuaires. Les bureaux administratifs sont ouverts de 8h à 17h, du lundi au vendredi.",
+      "sender": "bot",
+      "timestamp": "2025-04-16T08:02:00Z"
+    },
+    {
+      "id": 4,
+      "text": "Quels sont les services disponibles au port ?",
+      "sender": "user",
+      "timestamp": "2025-04-16T08:03:00Z"
+    },
+    {
+      "id": 5,
+      "text": "Le port propose plusieurs services : manutention, douane, entreposage, sécurité, remorquage, avitaillement, et inspection sanitaire et phytosanitaire.",
+      "sender": "bot",
+      "timestamp": "2025-04-16T08:04:00Z"
+    },
+    {
+      "id": 6,
+      "text": "Où puis-je me renseigner sur les procédures d'importation ?",
+      "sender": "user",
+      "timestamp": "2025-04-16T08:05:00Z"
+    },
+    {
+      "id": 7,
+      "text": "Pour les procédures d'importation, rendez-vous sur le site officiel du Port Autonome de Cotonou ou contactez le service douane. Je peux aussi vous envoyer les étapes clés si vous le souhaitez.",
+      "sender": "bot",
+      "timestamp": "2025-04-16T08:06:00Z"
+    },
+    {
+      "id": 8,
+      "text": "Quels sont les contacts utiles ?",
+      "sender": "user",
+      "timestamp": "2025-04-16T08:07:00Z"
+    },
+    {
+      "id": 9,
+      "text": "Voici quelques contacts utiles : Service client : +229 21 30 00 00 | Email : contact@pac.bj | Urgences sécurité : +229 21 30 01 23.",
+      "sender": "bot",
+      "timestamp": "2025-04-16T08:08:00Z"
+    }
+  ]
+}
+  

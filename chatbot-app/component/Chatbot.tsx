@@ -6,10 +6,7 @@ import { Message } from '@/types/message'
 import MessageList from "./MessageList";
 import WelcomeMessage from "./WelcomMessage";
 import MessageInput from "./MessageInput";
-
-
-
-
+import { fetchMessages } from '@/lib/fetchMessages'
 
 interface InputBoxProps {
   messages: Message[];
@@ -20,7 +17,7 @@ const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
   const [inputValue, setInputValue] = useState<string>("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => { 
+  useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
@@ -38,17 +35,44 @@ const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
 
       setMessages([...messages, newUserMessage]);
 
-      setTimeout(() => {
-        const botResponse: Message = {
-          id: messages.length + 2,
-          text: "Je suis un bot 🤖 !",
-          sender: "bot",
-          timestamp: new Date().toISOString(),
-        };
-        setMessages((prevMessages) => [...prevMessages, botResponse]);
-      }, 1000);
+      // Utilisation de fetch pour récupérer les messages du mock 
+      const getBotResponse = async () => {
+        try {
+          const response = await fetchMessages();
+          console.log("Message", response)  // Ici, fetchMessages() peu retourner les données du mock
+          const botResponse = response.find((message: Message) =>
+            message.text.toLowerCase().includes(inputValue.toLowerCase()) // Chercher une correspondance
+          );
 
-      setInputValue("");
+          if (botResponse) {
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              {
+                ...botResponse,
+                id: prevMessages.length + 1,
+                timestamp: new Date().toISOString(),
+              }
+            ]);
+          } else {
+            
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              {
+                id: prevMessages.length + 1,
+                text: "Je n'ai pas compris, pouvez-vous reformuler ?",
+                sender: "bot",
+                timestamp: new Date().toISOString(),
+              }
+            ]);
+          }
+        } catch (error) {
+          console.error('Erreur lors de la récupération des données du bot:', error);
+        }
+      };
+
+      getBotResponse();  // Appeler la fonction pour obtenir la réponse
+
+      setInputValue("");  // Réinitialiser le champ de saisie
     }
   };
 
