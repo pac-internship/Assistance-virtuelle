@@ -39,6 +39,9 @@ model question {
   id        Int       @id @default(autoincrement())
   contenu   String
   reponses  reponse[]
+   parentId  Int?
+  parent    question?   @relation("SubQuestions", fields: [parentId], references: [id])
+  children  question[]  @relation("SubQuestions")
 }
 
 model reponse {
@@ -49,3 +52,6 @@ model reponse {
 
   @@index([questionId])
 }
+
+
+

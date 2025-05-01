@@ -6,6 +6,7 @@ import { Message } from '@/types/message';
 import MessageList from "./MessageList";
 import WelcomeMessage from "./WelcomMessage";
 import MessageInput from "./MessageInput";
+import FAQPage from '@/component/FAQPage';
 
 interface InputBoxProps {
   messages: Message[];
@@ -78,6 +79,7 @@ const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
       ) : (
         <MessageList messages={messages} />
       )}
+      <FAQPage />
       <MessageInput
         inputValue={inputValue}
         setInputValue={setInputValue}
@@ -89,5 +91,4 @@ const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
 };
 
 export default InputBox;
-
 
