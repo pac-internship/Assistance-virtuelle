@@ -17,6 +17,7 @@ package-lock.json
 # next.js
 /.next/
 /out/
+/lib/client
 
 # production
 /build
@@ -40,3 +41,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/prisma/migrations/
+/lib/generated/prisma/
+/.idea
+/yarn.lock
