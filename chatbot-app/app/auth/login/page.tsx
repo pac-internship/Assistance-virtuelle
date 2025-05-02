@@ -1,44 +1,42 @@
 'use client';
 
-import { signIn, useSession} from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-
-
-
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState(""); // Modification : utiliser email au lieu de username
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
   const router = useRouter();
 
-   // Si l'utilisateur est déjà connecté, redirige-le vers la page d'accueil
-   useEffect(() => {
+  // Si l'utilisateur est déjà connecté, redirige-le vers la page d'accueil
+  useEffect(() => {
     if (session) {
-      router.push("/"); // ✅ OK dans useEffect
+      router.push("/"); // Redirection vers la page d'accueil si l'utilisateur est connecté
     }
   }, [session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Essayer de se connecter avec les informations fournies
     const res = await signIn("credentials", {
       redirect: false,
-      username,
+      email, 
       password,
     });
     console.log("Résultat connexion :", res);
-    
+
     if (res?.error) {
-      setError("Nom d'utilisateur ou mot de passe incorrect");
+      setError("Email ou mot de passe incorrect"); 
     } else {
-      // Rediriger l'utilisateur après une connexion réussie
+      
       router.push("/");
     }
   };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-blue-100">
       <form
@@ -47,10 +45,10 @@ export default function LoginPage() {
       >
         <h1 className="text-2xl font-bold text-center">Connexion</h1>
         <input
-          type="text"
-          placeholder="Nom d'utilisateur"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          type="email" // Modification : changer le type en email
+          placeholder="Email"
+          value={email} // Modification : utiliser email au lieu de username
+          onChange={(e) => setEmail(e.target.value)} // Modification : mettre à jour email
           className="w-full border p-2 rounded"
         />
         <input
@@ -62,10 +60,11 @@ export default function LoginPage() {
         />
         <button
           type="submit"
-          className="w-full items-center rounded-full bg-blue-100 text-sm font-semibold text-blue-800  p-2 rounded hover:bg-blue-200"
+          className="w-full items-center rounded-full bg-blue-100 text-sm font-semibold text-blue-800 p-2 rounded hover:bg-blue-200"
         >
           Se connecter
         </button>
+        {error && <p className="text-red-500 text-center">{error}</p>} {/* Afficher l'erreur */}
       </form>
     </div>
   );
