@@ -4,7 +4,7 @@ import React from "react";
 import Image from "next/image"
 import { Bars3Icon } from "@heroicons/react/24/solid";
 import Img from "@/component/logo.webp"; // Assure-toi que le chemin d'image est correct
-
+import LogoutButton from "@/component/LogoutButton";
 interface HeaderProps {
   onHistoryToggle: () => void;
   onNewChat: () => void;
@@ -36,13 +36,16 @@ const Header: React.FC<HeaderProps> = ({ onHistoryToggle, onNewChat, showHistory
       </div>
 
       {/* Bouton New Chat */}
-      <div className="flex space-x-2 ml-auto pr-25">
+      <div className="flex space-x-2 ml-auto pr-5">
         <button
           onClick={onNewChat}
           className="inline-flex items-center rounded-full bg-green-100 px-3 py-1.5 text-sm font-semibold text-green-800 hover:bg-green-200"
         >
           New Chat
         </button>
+      </div>
+      <div>
+      <LogoutButton />
       </div>
     </header>
   );

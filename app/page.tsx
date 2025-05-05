@@ -2,15 +2,19 @@
 
 import { Message } from '@/types/message'
 import React, { useState } from 'react'
+
+import { redirect } from "next/navigation";
 import Header from '../component/Header'
 import Chatbot from "../component/Chatbot";
 import History from "../component/Historique";
 
+
+
 export default function Home() {
-  const [messages, setMessages] = useState<Message[]>([
+ const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Welcome! How can I help you today?",
+      text: "Welcome! How can  help you today?",
       sender: "bot",
       timestamp: new Date().toISOString(),
     },
