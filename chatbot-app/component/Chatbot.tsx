@@ -7,6 +7,7 @@ import MessageList from "./MessageList";
 import WelcomeMessage from "./WelcomMessage";
 import MessageInput from "./MessageInput";
 import FAQPage from '@/component/FAQPage';
+import ChatInterface from "./ChatInterface";
 
 interface InputBoxProps {
   messages: Message[];
@@ -80,6 +81,7 @@ const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
         <MessageList messages={messages} />
       )}
       <FAQPage />
+      <ChatInterface/>
       <MessageInput
         inputValue={inputValue}
         setInputValue={setInputValue}
