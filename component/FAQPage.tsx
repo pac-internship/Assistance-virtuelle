@@ -1,133 +1,42 @@
-// // FAQPage.tsx
-// "use client";
-
-// import React, { useEffect, useState } from "react";
-
-
-// type Question = {
-//   id: number;
-//   contenu: string;
-//   children: Question[];
-// };
-
-// const FAQPage = () => {
-//   const [questions, setQuestions] = useState<Question[]>([]);
-
-//   useEffect(() => {
-//     const fetchQuestions = async () => {
-//       const res = await fetch("/api/faq");
-//       const data = await res.json();
-      
-//       console.log("Questions récupérées :", data);
-
-//       // console.log("Type :", typeof data);
-//       // console.log("Est-ce un tableau ?", Array.isArray(data));
-//       setQuestions(data);
-//     };
-
-//     fetchQuestions();
-//   }, []);
-
-//   return (
-//     <div className="p-6">
-     
-
-//       <div className="space-y-6">
-//       {Array.isArray(questions) && questions.map((question) => (
-//   <div key={question.id} className="border-b pb-4">
-//     <h3 className="text-lg font-semibold text-gray-800">{question.contenu}</h3>
-//     {Array.isArray(question.children) && question.children.length > 0 && (
-  //<ul className="mt-4 list-disc list-inside text-gray-600 space-y-2 transition-all duration-200 ease-in-out">
-//         {question.children.map((child) => (
-//           <li key={child.id}>{child.contenu}</li>
-//         ))}
-//       </ul>
-//     )}
-//   </div>
-// ))}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default FAQPage;
-
-
-// src/app/faqpage.tsx  (ou pages/faqpage.tsx selon votre structure)
-// src/app/faqpage.tsx (ou pages/faqpage.tsx selon votre structure)
-// src/app/faqpage.tsx
-// "use client";
-
-// import React, { useEffect, useState } from "react";
-// import { Disclosure } from "@headlessui/react";
-// import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
-
-// type Question = {
-//   id: number;
-//   contenu: string;
-//   children: Question[];
-// };
-
-// const FAQPage: React.FC = () => {
-//   const [questions, setQuestions] = useState<Question[]>([]);
-
-//   useEffect(() => {
-//     async function fetchQuestions() {
-//       const res = await fetch("/api/faq");
-//       const data: Question[] = await res.json();
-//       setQuestions(data);
-//     }
-//     fetchQuestions();
-//   }, []);
-
-//   return (
-//     <div className="min-h-screen bg-gray-50 p-6">
-//       <h2 className="text-3xl font-bold text-center mb-10"></h2>
-//       <div className="space-y-4">
-//         {questions.map(q => (
-//           <Disclosure key={q.id}>
-//             {({ open }) => (
-//               <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
-//                 <Disclosure.Button className="flex justify-between w-full text-left text-lg font-semibold text-gray-800 hover:bg-gray-100 p-2 rounded">
-//                   {q.contenu}
-//                   {open ? (
-//                     <ChevronUpIcon className="w-5 h-5 text-gray-600" />
-//                   ) : (
-//                     <ChevronDownIcon className="w-5 h-5 text-gray-600" />
-//                   )}
-//                 </Disclosure.Button>
-//                 <Disclosure.Panel className="pt-4 pl-4 pr-2 text-gray-600">
-//                   <ul className="list-disc list-inside space-y-2">
-//                     {q.children.map(child => (
-//                       <li key={child.id}>{child.contenu}</li>
-//                     ))}
-//                   </ul>
-//                 </Disclosure.Panel>
-//               </div>
-//             )}
-//           </Disclosure>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default FAQPage;
-
-
-// app/faqpage.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, {
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
+import MessageList from "@/component/MessageList";
+import { Message } from "@/types/message";
 
 type Question = {
   id: number;
   contenu: string;
-  children: Question[];
+  reponses?: { contenu: string }[];
+  children?: Question[];
 };
 
-const FAQPage: React.FC = () => {
+export interface FAQPageHandle {
+  startNewSession: () => void;
+}
+
+interface FAQPageProps {
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  modeLibre: boolean;
+  setModeLibre: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const FAQPage = forwardRef<FAQPageHandle, FAQPageProps>(({
+  messages,
+  setMessages,
+  modeLibre,
+  setModeLibre,
+}, ref) => {
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [session, setSession] = useState<number>(Date.now());
+  const [showInitialQuestions, setShowInitialQuestions] = useState(true);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -139,52 +48,106 @@ const FAQPage: React.FC = () => {
         console.error("Erreur lors de la récupération des questions :", error);
       }
     };
-
     fetchQuestions();
   }, []);
 
+  useEffect(() => {
+    setMessages([]);
+    setCurrentQuestion(null);
+    setModeLibre(false);
+    setShowInitialQuestions(true); // 🔄 Réinitialise les questions affichées au démarrage
+  }, [session]);
+
+  useEffect(() => {
+    if (modeLibre && messages.length > 0) {
+      const last = messages[messages.length - 1];
+      if (last.sender === "user") {
+        setShowInitialQuestions(false); // 🔒 Cache les questions après saisie libre
+      }
+    }
+  }, [messages, modeLibre]);
+
+  const startNewSession = () => {
+    if (messages.length > 0) {
+      const historiqueBrut = localStorage.getItem("historique") || "[]";
+      const historique = JSON.parse(historiqueBrut);
+      const sessionObj = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        messages: messages,
+      };
+      historique.push(sessionObj);
+      localStorage.setItem("historique", JSON.stringify(historique));
+    }
+    setSession(Date.now());
+  };
+
+  useImperativeHandle(ref, () => ({
+    startNewSession,
+  }));
+
+  const handleQuestionClick = (question: Question) => {
+    setCurrentQuestion(question);
+
+    const botText =
+      question.reponses?.[0]?.contenu ||
+      "Désolé, aucune réponse disponible pour cette question.";
+
+    const now = new Date().toISOString();
+
+    const userMessage: Message = {
+      id: Date.now(),
+      sender: "user",
+      text: question.contenu,
+      timestamp: now,
+    };
+
+    const botMessage: Message = {
+      id: Date.now() + 1,
+      sender: "bot",
+      text: botText,
+      timestamp: now,
+      children: question.children || [],
+    };
+
+    setMessages((prev) => [...prev, userMessage, botMessage]);
+
+    // ✅ Active automatiquement le mode libre si plus de sous-questions
+    if (!question.children || question.children.length === 0) {
+      setModeLibre(true);
+    }
+  };
+
+  const questionsToDisplay =
+    currentQuestion?.children || (!currentQuestion ? questions : []);
+
+  const isParentView = !currentQuestion;
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h2 className="text-3xl font-bold text-center mb-10">Foire Aux Questions</h2>
-      <div className="space-y-4">
-        {questions.map((question) => (
-          <AccordionItem key={question.id} question={question} />
-        ))}
-      </div>
-    </div>
-  );
-};
+    <div className="flex flex-col bg-white w-full">
+      <div className="flex-1">
+        <MessageList
+          messages={messages}
+          onQuestionClick={handleQuestionClick}
+        />
 
-interface AccordionItemProps {
-  question: Question;
-}
-
-const AccordionItem: React.FC<AccordionItemProps> = ({ question }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const hasChildren = question.children && question.children.length > 0;
-
-  return (
-    <div className="border border-gray-200 rounded-md p-4 mb-2">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-800">{question.contenu}</h3>
-        {hasChildren && (
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"
-          >
-            {isOpen ? "Masquer la réponse" : "Voir la réponse"}
-          </button>
+        {/* ✅ Affichage conditionnel des questions parent */}
+        {isParentView && showInitialQuestions && questionsToDisplay.length > 0 && (
+          <div className="flex flex-wrap gap-2 -mt-40 justify-center">
+            {questionsToDisplay.map((q) => (
+              <button
+                key={q.id}
+                className="rounded-full border border-solid border-black-300 bg-white px-3 py-3 text-base text-gray-800 hover:bg-gray-200"
+                onClick={() => handleQuestionClick(q)}
+              >
+                {q.contenu}
+              </button>
+            ))}
+          </div>
         )}
       </div>
-      {hasChildren && isOpen && (
-        <div className="mt-4 pl-4 border-l border-gray-300">
-          {question.children.map((child) => (
-            <AccordionItem key={child.id} question={child} />
-          ))}
-        </div>
-      )}
     </div>
   );
-};
+});
 
 export default FAQPage;
