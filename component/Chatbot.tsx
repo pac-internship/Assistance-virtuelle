@@ -1,21 +1,22 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
-import { Message } from '@/types/message';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
+import { Message } from "@/types/message";
 import MessageList from "./MessageList";
 import WelcomeMessage from "./WelcomMessage";
 import MessageInput from "./MessageInput";
-import FAQPage from '@/component/FAQPage';
+import FAQPage, { FAQPageHandle } from "@/component/FAQPage";
 
-interface InputBoxProps {
-  messages: Message[];
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+export interface ChatbotHandle {
+  startNewSession: () => void;
 }
 
-const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
+const Chatbot = forwardRef<ChatbotHandle>((props, ref) => {
   const [inputValue, setInputValue] = useState<string>("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [modeLibre, setModeLibre] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const faqPageRef = useRef<FAQPageHandle>(null);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -24,71 +25,78 @@ const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
     }
   }, [inputValue]);
 
-  const handleSendMessage = async () => {
-    if (inputValue.trim()) {
-      const newUserMessage: Message = {
-        id: messages.length + 1,
-        text: inputValue,
+  const handleSendMessage = async (userText: string) => {
+    if (!userText.trim()) return;
+
+    const now = new Date().toISOString();
+
+    const newMessages: Message[] = [
+      {
+        id: Date.now(),
         sender: "user",
-        timestamp: new Date().toISOString(),
-      };
+        text: userText.trim(),
+        timestamp: now,
+      },
+      {
+        id: Date.now() + 1,
+        sender: "bot",
+        text: "Voici la réponse générée par l'IA (simulée ici).",
+        timestamp: now,
+      },
+    ];
 
-      // Affiche le message de l'utilisateur
-      setMessages([...messages, newUserMessage]);
-
-      try {
-        // Envoie du message au backend
-        const res = await fetch('/api/chatbot', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: inputValue })
-        });
-
-        const data = await res.json(); // récupère la réponse du bot via faker
-
-        const botResponse: Message = {
-          id: messages.length + 2,
-          text: data.reply || "Sorry, I didn't understand that.",
-          sender: "bot",
-          timestamp: new Date().toISOString(),
-        };
-
-        // Affiche la réponse du bot
-        setMessages((prevMessages) => [...prevMessages, botResponse]);
-      } catch (error) {
-        console.error("Error fetching bot response:", error);
-
-        const errorMessage: Message = {
-          id: messages.length + 2,
-          text: "Sorry, something went wrong. Please try again.",
-          sender: "bot",
-          timestamp: new Date().toISOString(),
-        };
-
-        setMessages((prevMessages) => [...prevMessages, errorMessage]);
-      }
-
-      setInputValue("");
-    }
+    setMessages((prev) => [...prev, ...newMessages]);
+    setInputValue("");
   };
 
+  useImperativeHandle(ref, () => ({
+    startNewSession: () => {
+      faqPageRef.current?.startNewSession();
+    },
+  }));
+
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-white w-full">
-      {messages.length === 1 && messages[0].sender === "bot" ? (
-        <WelcomeMessage text={messages[0].text} />
-      ) : (
-        <MessageList messages={messages} />
+    <div className="h-screen flex flex-col bg-white w-full">
+      {messages.length === 0 && (
+        <div className="p-0 mt-40">
+          <WelcomeMessage text="Bienvenue ! Comment puis-je vous aider ?" />
+        </div>
       )}
-      <FAQPage />
-      <MessageInput
-        inputValue={inputValue}
-        setInputValue={setInputValue}
-        handleSendMessage={handleSendMessage}
-        textareaRef={textareaRef}
-      />
+
+      <div className="flex-1 overflow-y-auto">
+        <FAQPage
+          ref={faqPageRef}
+          messages={messages}
+          setMessages={setMessages}
+          modeLibre={modeLibre}
+          setModeLibre={setModeLibre}
+        />
+      </div>
+
+      <div>
+        <MessageInput
+          inputValue={inputValue}
+          setInputValue={setInputValue}
+          handleSendMessage={() => handleSendMessage(inputValue)}
+          textareaRef={textareaRef}
+          onSend={handleSendMessage}
+          
+          onFileUpload={(fileUrl, fileType) => {
+            const now = new Date().toISOString();
+            const userMessage: Message = {
+              id: Date.now(),
+              sender: "user",
+              text: "Fichier envoyé",
+              fileUrl,
+              fileType,
+              timestamp: now,
+            };
+            setMessages((prev) => [...prev, userMessage]);
+          }}
+        />
+      </div>
     </div>
   );
-};
+});
 
-export default InputBox;
-
+export default Chatbot;

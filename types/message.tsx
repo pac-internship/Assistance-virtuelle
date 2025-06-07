@@ -1,15 +1,14 @@
-// export type Message = { 
-//     id: number;
-//     text: string;
-//     sender: "user" | "bot";
-//     timestamp: string;
-//   }
-
-
-export interface Message {
+export type Message = {
   id: number;
-  text: string;
   sender: "user" | "bot";
+  text: string;
   timestamp: string;
-  children?: { id: number; contenu: string }[]; // Ajout de la propriété children
-}
+  fileUrl?: string;     
+  fileType?: string;  
+  children?: {
+    id: number;
+    contenu: string;
+    reponses?: { contenu: string }[];
+    children?: any[]; // pour permettre récursion
+  }[];
+};
