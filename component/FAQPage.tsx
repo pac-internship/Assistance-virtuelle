@@ -1,19 +1,47 @@
 // app/faqpage.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, {
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
+import MessageList from "@/component/MessageList";
+import { Message } from "@/types/message";
 
 // Type pour une question
 type Question = {
   id: number;
   contenu: string;
   children?: Question[]; // Utiliser "?" pour indiquer que c'est optionnel
+  reponses?: { contenu: string }[];
+  
 };
 
-const FAQPage: React.FC = () => {
+export interface FAQPageHandle {
+  startNewSession: () => void;
+}
+
+interface FAQPageProps {
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  modeLibre: boolean;
+  setModeLibre: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const FAQPage = forwardRef<FAQPageHandle, FAQPageProps>(({
+  messages,
+  setMessages,
+  modeLibre,
+  setModeLibre,
+}, ref) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [session, setSession] = useState<number>(Date.now());
+  const [showInitialQuestions, setShowInitialQuestions] = useState(true);
 
   // Récupération des questions via l'API
   useEffect(() => {
@@ -39,65 +67,106 @@ const FAQPage: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchQuestions();
   }, []);
 
-  // Affichage de l'état de chargement ou d'erreur
-  if (loading) return <p>Chargement des questions...</p>;
-  if (error) return <p className="text-red-600">Erreur : {error}</p>;
+  useEffect(() => {
+    setMessages([]);
+    setCurrentQuestion(null);
+    setModeLibre(false);
+    setShowInitialQuestions(true); // 🔄 Réinitialise les questions affichées au démarrage
+  }, [session]);
+
+  useEffect(() => {
+    if (modeLibre && messages.length > 0) {
+      const last = messages[messages.length - 1];
+      if (last.sender === "user") {
+        setShowInitialQuestions(false); // 🔒 Cache les questions après saisie libre
+      }
+    }
+  }, [messages, modeLibre]);
+
+  const startNewSession = () => {
+    if (messages.length > 0) {
+      const historiqueBrut = localStorage.getItem("historique") || "[]";
+      const historique = JSON.parse(historiqueBrut);
+      const sessionObj = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        messages: messages,
+      };
+      historique.push(sessionObj);
+      localStorage.setItem("historique", JSON.stringify(historique));
+    }
+    setSession(Date.now());
+  };
+
+  useImperativeHandle(ref, () => ({
+    startNewSession,
+  }));
+
+  const handleQuestionClick = (question: Question) => {
+    setCurrentQuestion(question);
+
+    const botText =
+      question.reponses?.[0]?.contenu ||
+      "Désolé, aucune réponse disponible pour cette question.";
+
+    const now = new Date().toISOString();
+
+    const userMessage: Message = {
+      id: Date.now(),
+      sender: "user",
+      text: question.contenu,
+      timestamp: now,
+    };
+
+    const botMessage: Message = {
+      id: Date.now() + 1,
+      sender: "bot",
+      text: botText,
+      timestamp: now,
+      children: question.children || [],
+    };
+
+    setMessages((prev) => [...prev, userMessage, botMessage]);
+
+    // ✅ Active automatiquement le mode libre si plus de sous-questions
+    if (!question.children || question.children.length === 0) {
+      setModeLibre(true);
+    }
+  };
+
+  const questionsToDisplay =
+    currentQuestion?.children || (!currentQuestion ? questions : []);
+
+  const isParentView = !currentQuestion;
 
   return (
-    <div className=" bg-gray-50 p-6">
-      <h2 className="text-2xl font-bold mb-4">FAQ</h2>
-      <div className="space-y-4">
-        {questions.length > 0 ? (
-          questions.map((question) => (
-            <AccordionItem key={question.id} question={question} />
-          ))
-        ) : (
-          <p className="text-gray-600">Aucune question trouvée.</p>
+    <div className="flex flex-col bg-white w-full">
+      <div className="flex-1">
+        <MessageList
+          messages={messages}
+          onQuestionClick={handleQuestionClick}
+        />
+
+        {/* ✅ Affichage conditionnel des questions parent */}
+        {isParentView && showInitialQuestions && questionsToDisplay.length > 0 && (
+          <div className="flex flex-wrap gap-2 -mt-40 justify-center">
+            {questionsToDisplay.map((q) => (
+              <button
+                key={q.id}
+                className="rounded-full border border-solid border-black-300 bg-white px-3 py-3 text-base text-gray-800 hover:bg-gray-200"
+                onClick={() => handleQuestionClick(q)}
+              >
+                {q.contenu}
+              </button>
+            ))}
+          </div>
         )}
       </div>
     </div>
   );
-};
-
-// Type pour les propriétés de l'élément accordéon
-interface AccordionItemProps {
-  question: Question;
-}
-
-// Composant pour afficher chaque question avec ses enfants
-const AccordionItem: React.FC<AccordionItemProps> = ({ question }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  // Vérification des enfants pour éviter les erreurs
-  const hasChildren = Array.isArray(question.children) && question.children.length > 0;
-
-  return (
-    <div className="border border-gray-200 rounded-md p-4 mb-2">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-800">{question.contenu}</h3>
-        {hasChildren && (
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"
-          >
-            {isOpen ? "masquer" : " réponse"}
-          </button>
-        )}
-      </div>
-
-      {hasChildren && isOpen && (
-        <div className="mt-4 pl-4 border-l border-gray-300">
-          {question.children?.map((child) => (
-            <AccordionItem key={child.id} question={child} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+});
 
 export default FAQPage;

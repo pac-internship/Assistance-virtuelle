@@ -2,7 +2,9 @@
 
 import React from "react";
 import Image from "next/image"
-import { Bars3Icon } from "@heroicons/react/24/solid";
+import { SquarePen } from 'lucide-react';
+import { DynamicIcon } from 'lucide-react/dynamic';
+//import {  PanelRight } from 'lucide-react';
 import Img from "@/component/logo.webp"; // Assure-toi que le chemin d'image est correct
 import LogoutButton from "@/component/LogoutButton";
 interface HeaderProps {
@@ -17,9 +19,10 @@ const Header: React.FC<HeaderProps> = ({ onHistoryToggle, onNewChat, showHistory
       {/* Icône historique */}
       <button
         onClick={onHistoryToggle}
-        className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+        className="px-2 py-2 bg-gray-100  rounded-sm hover:bg-gray-200 transition"
       >
-        <Bars3Icon className="w-4 h-4" />
+        
+        <DynamicIcon name="panel-right"  size={23} />
       </button>
 
       {/* Logo du chatbot */}
@@ -39,13 +42,13 @@ const Header: React.FC<HeaderProps> = ({ onHistoryToggle, onNewChat, showHistory
       <div className="flex space-x-2 ml-auto pr-5">
         <button
           onClick={onNewChat}
-          className="inline-flex items-center rounded-full bg-green-100 px-3 py-1.5 text-sm font-semibold text-green-800 hover:bg-green-200"
+          className="inline-flex items-center rounded-sm bg-gray-100 px-2 py-2   hover:bg-gray-200"
         >
-          New Chat
+         <SquarePen  size={23}/>
         </button>
       </div>
       <div>
-      <LogoutButton />
+        <LogoutButton/>
       </div>
     </header>
   );

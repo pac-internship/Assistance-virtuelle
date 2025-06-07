@@ -1,11 +1,16 @@
-import React from "react";
+"use client";
+
+import React, { useRef } from "react";
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
+import FileUploader from "./FileUploader";
 
 interface MessageInputProps {
   inputValue: string;
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
   handleSendMessage: () => void;
   textareaRef: React.RefObject<HTMLTextAreaElement>;
+  onSend: (message: string) => void;
+  onFileUpload?: (url: string, type: string) => void;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
@@ -13,12 +18,15 @@ const MessageInput: React.FC<MessageInputProps> = ({
   setInputValue,
   handleSendMessage,
   textareaRef,
-}) => (
-  <div className="w-full mx-auto px-4 py-4 sm:px-6">
-    <div className="flex items-center space-x-2 p-3" style={{ marginBottom: "20px" }}>
+  onSend,
+  onFileUpload,
+}) => {
+  return (
+    <div className="mb-5 flex items-center gap-2 border-solid border-gray-200 border rounded-sm bg-white">
+      {/* Zone de texte */}
       <textarea
         ref={textareaRef}
-        rows={1}
+        rows={4}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={(e) => {
@@ -27,21 +35,27 @@ const MessageInput: React.FC<MessageInputProps> = ({
             handleSendMessage();
           }
         }}
-        className="flex-grow rounded-xl border border-gray-300 px-4 py-2 shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm resize-none"
-        placeholder="Type your message..."
+        className="flex-grow resize-none bg-transparent text-sm focus:outline-none placeholder-gray-500 py-2 text-gray-900"
+        placeholder="Écrivez votre message ici..."
         style={{
           maxHeight: "160px",
           overflowY: inputValue ? "auto" : "hidden",
         }}
       />
+
+      {/* 📎 Bouton pour fichier */}
+      {onFileUpload && <FileUploader onFileUpload={onFileUpload} />}
+
+      {/* Bouton envoyer */}
       <button
         onClick={handleSendMessage}
-        className="inline-flex items-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+        className="p-2 rounded-full inline-flex items-center text-sm font-semibold bg-gray-500 hover:bg-gray-300 text-white"
+        title="Envoyer"
       >
         <PaperAirplaneIcon className="w-5 h-5" />
       </button>
     </div>
-  </div>
-);
+  );
+};
 
 export default MessageInput;
