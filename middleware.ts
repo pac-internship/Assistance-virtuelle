@@ -15,3 +15,4 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: ["/"], // tu peux ajouter plus de routes ici si besoin
 };
+

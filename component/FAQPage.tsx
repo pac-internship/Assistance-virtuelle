@@ -1,167 +1,79 @@
-// // FAQPage.tsx
-// "use client";
-
-// import React, { useEffect, useState } from "react";
-
-
-// type Question = {
-//   id: number;
-//   contenu: string;
-//   children: Question[];
-// };
-
-// const FAQPage = () => {
-//   const [questions, setQuestions] = useState<Question[]>([]);
-
-//   useEffect(() => {
-//     const fetchQuestions = async () => {
-//       const res = await fetch("/api/faq");
-//       const data = await res.json();
-      
-//       console.log("Questions récupérées :", data);
-
-//       // console.log("Type :", typeof data);
-//       // console.log("Est-ce un tableau ?", Array.isArray(data));
-//       setQuestions(data);
-//     };
-
-//     fetchQuestions();
-//   }, []);
-
-//   return (
-//     <div className="p-6">
-     
-
-//       <div className="space-y-6">
-//       {Array.isArray(questions) && questions.map((question) => (
-//   <div key={question.id} className="border-b pb-4">
-//     <h3 className="text-lg font-semibold text-gray-800">{question.contenu}</h3>
-//     {Array.isArray(question.children) && question.children.length > 0 && (
-  //<ul className="mt-4 list-disc list-inside text-gray-600 space-y-2 transition-all duration-200 ease-in-out">
-//         {question.children.map((child) => (
-//           <li key={child.id}>{child.contenu}</li>
-//         ))}
-//       </ul>
-//     )}
-//   </div>
-// ))}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default FAQPage;
-
-
-// src/app/faqpage.tsx  (ou pages/faqpage.tsx selon votre structure)
-// src/app/faqpage.tsx (ou pages/faqpage.tsx selon votre structure)
-// src/app/faqpage.tsx
-// "use client";
-
-// import React, { useEffect, useState } from "react";
-// import { Disclosure } from "@headlessui/react";
-// import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
-
-// type Question = {
-//   id: number;
-//   contenu: string;
-//   children: Question[];
-// };
-
-// const FAQPage: React.FC = () => {
-//   const [questions, setQuestions] = useState<Question[]>([]);
-
-//   useEffect(() => {
-//     async function fetchQuestions() {
-//       const res = await fetch("/api/faq");
-//       const data: Question[] = await res.json();
-//       setQuestions(data);
-//     }
-//     fetchQuestions();
-//   }, []);
-
-//   return (
-//     <div className="min-h-screen bg-gray-50 p-6">
-//       <h2 className="text-3xl font-bold text-center mb-10"></h2>
-//       <div className="space-y-4">
-//         {questions.map(q => (
-//           <Disclosure key={q.id}>
-//             {({ open }) => (
-//               <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
-//                 <Disclosure.Button className="flex justify-between w-full text-left text-lg font-semibold text-gray-800 hover:bg-gray-100 p-2 rounded">
-//                   {q.contenu}
-//                   {open ? (
-//                     <ChevronUpIcon className="w-5 h-5 text-gray-600" />
-//                   ) : (
-//                     <ChevronDownIcon className="w-5 h-5 text-gray-600" />
-//                   )}
-//                 </Disclosure.Button>
-//                 <Disclosure.Panel className="pt-4 pl-4 pr-2 text-gray-600">
-//                   <ul className="list-disc list-inside space-y-2">
-//                     {q.children.map(child => (
-//                       <li key={child.id}>{child.contenu}</li>
-//                     ))}
-//                   </ul>
-//                 </Disclosure.Panel>
-//               </div>
-//             )}
-//           </Disclosure>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default FAQPage;
-
-
 // app/faqpage.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 
+// Type pour une question
 type Question = {
   id: number;
   contenu: string;
-  children: Question[];
+  children?: Question[]; // Utiliser "?" pour indiquer que c'est optionnel
 };
 
 const FAQPage: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Récupération des questions via l'API
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
         const res = await fetch("/api/faq");
-        const data: Question[] = await res.json();
-        setQuestions(data);
-      } catch (error) {
-        console.error("Erreur lors de la récupération des questions :", error);
+        if (!res.ok) {
+          throw new Error(`Erreur ${res.status}: ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        console.log("Données reçues du backend :", JSON.stringify(data, null, 2));
+
+        if (Array.isArray(data)) {
+          setQuestions(data);
+        } else {
+          throw new Error("Le format des données reçues est incorrect.");
+        }
+      } catch (err) {
+        setError((err as Error).message);
+        console.error("Erreur lors de la récupération des questions :", err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchQuestions();
   }, []);
 
+  // Affichage de l'état de chargement ou d'erreur
+  if (loading) return <p>Chargement des questions...</p>;
+  if (error) return <p className="text-red-600">Erreur : {error}</p>;
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h2 className="text-3xl font-bold text-center mb-10">Foire Aux Questions</h2>
+    <div className=" bg-gray-50 p-6">
+      <h2 className="text-2xl font-bold mb-4">FAQ</h2>
       <div className="space-y-4">
-        {questions.map((question) => (
-          <AccordionItem key={question.id} question={question} />
-        ))}
+        {questions.length > 0 ? (
+          questions.map((question) => (
+            <AccordionItem key={question.id} question={question} />
+          ))
+        ) : (
+          <p className="text-gray-600">Aucune question trouvée.</p>
+        )}
       </div>
     </div>
   );
 };
 
+// Type pour les propriétés de l'élément accordéon
 interface AccordionItemProps {
   question: Question;
 }
 
+// Composant pour afficher chaque question avec ses enfants
 const AccordionItem: React.FC<AccordionItemProps> = ({ question }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const hasChildren = question.children && question.children.length > 0;
+
+  // Vérification des enfants pour éviter les erreurs
+  const hasChildren = Array.isArray(question.children) && question.children.length > 0;
 
   return (
     <div className="border border-gray-200 rounded-md p-4 mb-2">
@@ -172,13 +84,14 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ question }) => {
             onClick={() => setIsOpen(!isOpen)}
             className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"
           >
-            {isOpen ? "Masquer la réponse" : "Voir la réponse"}
+            {isOpen ? "masquer" : " réponse"}
           </button>
         )}
       </div>
+
       {hasChildren && isOpen && (
         <div className="mt-4 pl-4 border-l border-gray-300">
-          {question.children.map((child) => (
+          {question.children?.map((child) => (
             <AccordionItem key={child.id} question={child} />
           ))}
         </div>

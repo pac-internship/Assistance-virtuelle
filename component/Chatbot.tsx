@@ -14,7 +14,7 @@ interface InputBoxProps {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
-const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
+const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages, setNewChatroom }) => {
   const [inputValue, setInputValue] = useState<string>("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -46,6 +46,12 @@ const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
         });
 
         const data = await res.json(); // récupère la réponse du bot via faker
+
+        // console.log(data.newChatroom);
+        
+        if (data.newChatroom) {
+          setNewChatroom(data.newChatroom)
+        }
 
         const botResponse: Message = {
           id: messages.length + 2,
@@ -80,7 +86,6 @@ const InputBox: React.FC<InputBoxProps> = ({ messages, setMessages }) => {
       ) : (
         <MessageList messages={messages} />
       )}
-      <FAQPage />
       <ChatInterface/>
       <MessageInput
         inputValue={inputValue}

@@ -1,78 +1,137 @@
- import { faker } from '@faker-js/faker';
+
 import prisma from "@/lib/prisma"
 import { NextResponse } from "next/server";
+import { getServerSession } from 'next-auth'
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
 
 
+
+export async function POST(req: Request) {
+  try {
+
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      )
+    }
+
+    const { text } = await req.json()
+    
+    const userId = session.user.id
+
+    const idChatroomSelected = undefined
+
+    let chatroom = await prisma.chatroom.findMany({
+      where: { idUser: Number(userId) },
+      orderBy: { createdAt: 'desc' }
+    })
+
+   // console.log(chatroom);
+    if (idChatroomSelected )
+    {
+      const newMessage = await prisma.message.create({
+          data: {
+            content: text,
+            //senderId: Number(userId),
+            idChatroom: idChatroomSelected
+          }
+        })
+
+        return NextResponse.json({
+          success: true,
+          newChatroom: false,
+          chatroomId: chatroom[0].id,
+          message: newMessage
+        })
+    }
+    else {
+      if (chatroom && chatroom.length>0 ) {
+        const newMessage = await prisma.message.create({
+          data: {
+            content: text,
+            //senderId: Number(userId),
+            idChatroom: chatroom[0].id
+          }
+        })
+
+        return NextResponse.json({
+          success: true,
+          newChatroom: false,
+          chatroomId: chatroom[0].id,
+          message: newMessage
+        })
+      }
+      else {
+        let newChatroom = await prisma.chatroom.create({
+          data: {
+            idUser: Number (userId),
+            status: 'actif',
+            titre: text
+          }
+        })
+        const newMessage = await prisma.message.create({
+          data: {
+            content: text,
+          // senderId: userId,
+            idChatroom: newChatroom.id
+          }
+        })
+
+        return NextResponse.json({
+          success: true,
+          newChatroom : newChatroom,
+          chatroomId: newChatroom.id,
+          message: newMessage
+        })
+
+      }
+    }
+
+  }
+  catch (error) {
+    console.error("[CHAT_POST_ERROR]", error)
+    return NextResponse.json(
+      {
+        error: "Erreur serveur",
+      },
+      { status: 500 }
+    )
+  }
+}
 
 export async function GET(request: Request) {
+  const session = await getServerSession(authOptions)
+  const { searchParams } = new URL(request.url)
+  const chatroomId = searchParams.get('chatroomId')
   try {
-    const messages = await prisma.message.findMany(); 
-    return NextResponse.json(messages, {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (error) {
-    console.error('Erreur Prisma :', error);
+    if (!session) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+    }
+    const chatroom = await prisma.chatroom.findFirst({
+      where: {
+        id: chatroomId ? parseInt(chatroomId) : undefined, // Conversion et gestion de null
+        idUser: session.userId,
+      }
+    })
+
+    if (!chatroom) {
+      return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 })
+    }
+
+    const messages = await prisma.message.findMany({
+      where: { idChatroom: Number() },
+      orderBy: { createdAt: 'asc' }
+    })
+
+    return NextResponse.json({ messages })
+  }
+  catch (error: any) {
+    console.error(error);
     return NextResponse.json(
-      { error: 'Failed to fetch messages' },
+      { error: 'Erreur serveur', details: error?.message },
       { status: 500 }
     );
   }
 }
-
-
-export async function POST(req: Request){
-    try{
-        // const messages = await prisma.messages.findMany();
-        const user = await prisma.user.findMany(); 
-        return new Response(JSON.stringify(user) , {status:200, headers: {"Content-Type": "application/json"}})
-    }catch(error){
-       console.log("Erreur POST :", error);
-       
-        return Response.json({error: "Failed to fetch messages"} , {status:500})
-
-    }
-}
-
-
-
-// export async function POST(req: Request) {
-//   try {
-//     const body = await req.json();
-//     const { text } = body;
-
-//     if (!text) {
-//       return NextResponse.json({ error: "Texte manquant dans la requête" }, { status: 400 });
-//     }
-
-//     // 🔹 Simuler une réponse de bot avec faker
-//     const botReply = faker.lorem.sentence();
-
-//     // 🔹 Tu peux modifier ces IDs selon ta logique
-//     const idChatroom = 1;
-
-//     // Enregistrer le message utilisateur dans la BDD
-//     await prisma.message.create({
-//       data: {
-//         content: text,
-//         idChatroom,
-//         titre: "Utilisateur"
-//       }
-//     });
-
-//     // Enregistrer la réponse du bot dans la BDD
-//     await prisma.message.create({
-//       data: {
-//         content: botReply,
-//         idChatroom,
-//         titre: "Bot"
-//       }
-//     });
-
-//     return NextResponse.json({ reply: botReply }, { status: 200 });
-
-//   } catch (error) {
-//     console.error("Erreur dans POST /api/chatbot:", error);
-//     return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 });
-//   }
-// }

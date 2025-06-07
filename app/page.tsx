@@ -7,11 +7,12 @@ import { redirect } from "next/navigation";
 import Header from '../component/Header'
 import Chatbot from "../component/Chatbot";
 import History from "../component/Historique";
+import FAQPage from "../component/FAQPage";
 
 
 
 export default function Home() {
- const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       text: "Welcome! How can  help you today?",
@@ -19,13 +20,16 @@ export default function Home() {
       timestamp: new Date().toISOString(),
     },
   ])
+
+  const [newChatroom, setNewChatroom] = useState([])
+
   const [showHistory, setShowHistory] = useState<boolean>(false)
 
   const toggleHistory = () => {
     setShowHistory(!showHistory)
   }
 
-  const startNewChat = () => {
+  const startNewChat = () => {             
     setMessages([
       {
         id: 1,
@@ -51,7 +55,7 @@ export default function Home() {
             showHistory ? "w-[20%] p-4" : "w-0 p-0"
           }`}
         >
-          {showHistory && <History messages={messages} />}
+          {showHistory && <History newChatroom={newChatroom} messages={messages} setMessages={setMessages}/>}
         </div>
        
        {/* Contenu du chat (InputBox) */}
@@ -62,7 +66,7 @@ export default function Home() {
           id="chatbox"
         >
           <div className="w-[60%]">
-            <Chatbot messages={messages} setMessages={setMessages} />
+            <Chatbot setNewChatroom={setNewChatroom} messages={messages} setMessages={setMessages} />
           </div>
         </div>
       </div>
