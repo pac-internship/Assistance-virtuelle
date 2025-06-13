@@ -8,6 +8,7 @@ interface MessageListProps {
   onQuestionClick: (question: any) => void; // nouvelle prop
 }
 
+
 const MessageList: React.FC<MessageListProps> = ({ messages, onQuestionClick }) => (
   <div className="w-full mx-auto flex flex-col flex-1 overflow-hidden pt-15 pb-18">
     <div className="flex-1 overflow-y-auto p-4">
@@ -23,19 +24,23 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onQuestionClick }) 
                   {message.text}
 
                    {/* Affichage des enfants si présents */}
-              {message.children && message.children.length > 0 && (
-                 <div className="mt-2  flex flex-col gap-2">
-                  {message.children.map((child) => (
-                    <button
-                      key={child.id}
-                      className="rounded-md bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800 hover:bg-gray-200"
-                      onClick={() => onQuestionClick(child)}
-                    >
-                      {child.contenu}
-                    </button>
-                  ))}
-                </div>
-              )}
+              {Array.isArray(message.children) && message.children.length > 0 && (
+  <div className="mt-2 flex flex-col gap-2">
+    {message.children.map((child, index) => {
+      if (!child || typeof child.id === "undefined" || !child.contenu) return null;
+      return (
+        <button
+          key={child.id}
+          className="rounded-md bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800 hover:bg-gray-200"
+          onClick={() => onQuestionClick(child)}
+        >
+          {child.contenu}
+        </button>
+      );
+    })}
+  </div>
+)}
+
                 </div>
               </div>
 

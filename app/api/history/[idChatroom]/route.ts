@@ -7,39 +7,35 @@ export async function GET(
   request: Request,
   { params }: { params: { idChatroom: string } }
 ) {
-  const {idChatroom} = await params;
+  const { idChatroom } = params;
 
-  console.log('id',idChatroom);
-  
-  
-  //1. Vérifier l'authentification
-  const session = await getServerSession(authOptions)
+  console.log('id', idChatroom);
+
+  const session = await getServerSession(authOptions);
   console.log(session);
-  if (!session || !session?.user ) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+
+  if (!session || !session.user) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
   try {
     const chatroomWithMessage = await prisma.chatroom.findUnique({
-      where: {  
-        id: Number(params.idChatroom) 
-       },
+      where: {
+        id: Number(idChatroom)
+      },
       include: {
-        message: true,  // Tous les messages
-        //question: true      // Toutes les FAQ
+        message: true
       }
-    })
-    console.log('ID :', params.idChatroom);
+    });
 
- return NextResponse.json({chatroomWithMessage});
-
-}
-   catch (error) {
-   console.error('[HISTORY_GET]', error);
+    console.log('Chatroom récupérée :', chatroomWithMessage);
+    return NextResponse.json({ chatroomWithMessage });
+  } catch (error) {
+    console.error('[HISTORY_GET]', error);
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }
-    )
+    );
   }
 
 }

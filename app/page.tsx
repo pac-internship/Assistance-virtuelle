@@ -11,6 +11,7 @@ import FAQPage from "../component/FAQPage";
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [showHistory, setShowHistory] = useState<boolean>(false);
+  const [newChatroom, setNewChatroom] = useState("");
 
   // Référence vers le Chatbot pour déclencher startNewSession
   const chatbotRef = useRef<ChatbotHandle>(null);
@@ -61,9 +62,10 @@ export default function Home() {
           id="chatbox"
         >
           <div className="w-[60%]">
-            <Chatbot setNewChatroom={setNewChatroom} messages={messages} setMessages={setMessages} />
+            {/* <Chatbot setNewChatroom={setNewChatroom} messages={messages} setMessages={setMessages} /> */}
             <Chatbot
               ref={chatbotRef}
+              setNewChatroom={setNewChatroom}
               messages={messages}
               setMessages={setMessages}
             />

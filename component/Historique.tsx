@@ -1,4 +1,5 @@
 
+'use client';
 import React, { useEffect, useState } from "react";
 import { format, isToday, isYesterday, subDays, isWithinInterval } from "date-fns";
 import fr from "date-fns/locale/fr";
@@ -106,10 +107,13 @@ import { useSession } from "next-auth/react";
 
 
 
+
+
+
 interface Message {
   id: number;
   content: string;
-  senderId: "user" | "bot";
+  senderId: number | string;
   createdAt: string;
 }
 
@@ -118,65 +122,70 @@ interface ChatroomType {
   titre: string;
 }
 
-const History = ({newChatroom, setMessages}) => {
+interface HistoryProps {
+  newChatroom: ChatroomType;
+  setMessages: (messages: {
+    id: number;
+    text: string;
+    sender: 'user' | 'bot';
+    createdAt: string;
+  }[]) => void;
+}
 
-  const [title, setTitle] = useState<string>("");
+const History: React.FC<HistoryProps> = ({ newChatroom, setMessages }) => {
   const [chatrooms, setChatRooms] = useState<ChatroomType[]>([]);
   const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);
-  const { data: session } = useSession(); // Ajout de la session
-  const [loading, setLoading] = useState(true);
+  const [title, setTitle] = useState('');
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await fetch("/api/history");
+        const res = await fetch('/api/history');
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        
         const data = await res.json();
-        setChatRooms(data.chatroom || []); // Protection contre undefined
+        setChatRooms(data.chatroom || []);
       } catch (error) {
-        console.error("Erreur lors de la récupération de l'historique", error);
+        console.error('Erreur lors de la récupération de l\'historique', error);
       }
     };
     fetchHistory();
   }, []);
 
   useEffect(() => {
-    setChatRooms(c => [newChatroom, ...c ] )
+    if (newChatroom?.id) {
+      setChatRooms((prev) => [newChatroom, ...prev]);
+    }
   }, [newChatroom]);
 
-  // Correction majeure : utilisation de session.user.id au lieu de userId non défini
   const fetchMessages = async (chatroomId: number) => {
     if (!session?.user?.id) {
       console.error("Utilisateur non connecté");
       return;
     }
-    else {
-      // Correction de l'URL avec les bons paramètres
+
+    try {
       const res = await fetch(`/api/history/${chatroomId}`, {
-        credentials: 'include', // Important pour les cookies
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         }
-      })
+      });
 
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
       const data = await res.json();
-      console.log(data);
-      console.log(session.user.id);
-      
-      const formattedMessages = data?.chatroomWithMessage?.message?.map((message :Message) => ({
+      const formattedMessages = data?.chatroomWithMessage?.message?.map((message: Message) => ({
         id: message.id,
-        text: message.content, // ou msg.text selon ton API
-        sender: data?.chatroomWithMessage?.idUser === session.user.id ? "user" : "bot",
+        text: message.content,
+        sender: message.senderId === session.user.id ? "user" : "bot",
         createdAt: message.createdAt
-      }));
+      })) || [];
       setMessages(formattedMessages);
-
+    } catch (error) {
+      console.error("Erreur lors de la récupération des messages", error);
     }
-
-  }
+  };
 
   const handleTitleClick = (chatroom: ChatroomType) => {
     setTitle(chatroom.titre);
@@ -185,9 +194,9 @@ const History = ({newChatroom, setMessages}) => {
   };
 
   return (
-    <div className="p-7 overflow-y-auto" style={{ marginTop: "30px" }}>
+    <div className="p-7 overflow-y-auto mt-[30px]">
       <h2 className="text-lg font-bold mb-3">Vos conversations</h2>
-      {chatrooms?.map((item) => (
+      {chatrooms.map((item) => (
         <h1
           key={item.id}
           onClick={() => handleTitleClick(item)}
@@ -204,24 +213,8 @@ const History = ({newChatroom, setMessages}) => {
           {item.titre}
         </h1>
       ))}
-
-      {/* {selectedChatRoom && messages?.length > 0 && (
-        <div className="mt-4 p-3 bg-gray-100 rounded-md">
-          <h3 className="text-lg font-semibold mb-2">Messages de : {title}</h3>
-          <ul className="list-disc pl-5 space-y-1">
-            {messages.map((msg) => (
-              <li key={msg.id} className="text-gray-800">
-                <strong>{msg.senderId}:</strong> {msg.content}
-                <span className="text-xs text-gray-500 block">
-                  {new Date(msg.createdAt).toLocaleString()}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )} */}
     </div>
   );
-}
+};
 
 export default History;

@@ -71,6 +71,8 @@ const FAQPage = forwardRef<FAQPageHandle, FAQPageProps>(({
   }, []);
 
   useEffect(() => {
+      console.log("Réinitialisation des messages car nouvelle session");
+
     setMessages([]);
     setCurrentQuestion(null);
     setModeLibre(false);
@@ -136,9 +138,8 @@ const FAQPage = forwardRef<FAQPageHandle, FAQPageProps>(({
       setModeLibre(true);
     }
   };
-
-  const questionsToDisplay =
-    currentQuestion?.children || (!currentQuestion ? questions : []);
+ 
+ const questionsToDisplay = currentQuestion?.children ?? (!currentQuestion ? questions : []);
 
   const isParentView = !currentQuestion;
 
